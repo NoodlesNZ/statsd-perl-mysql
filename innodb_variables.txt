@@ -1,0 +1,289 @@
+Innodb sections:
+
+# TRANSACTIONS                          => tx
+# BUFFER POOL AND MEMORY                => bp
+# SEMAPHORES                            => sm
+# LOG                                   => lg
+# ROW OPERATIONS                        => ro
+# INSERT BUFFER AND ADAPTIVE HASH INDEX => ib
+# FILE I/O                              => io
+# LATEST DETECTED DEADLOCK              => dl
+# LATEST FOREIGN KEY ERROR              => fk
+
+Full dump of innodb variables:
+
+$VAR1 = {
+          'got_all' => 1,
+          'last_secs' => '0',
+          'sections' => {
+                          'bp' => {
+                                    'add_pool_alloc' => '0',
+                                    'awe_mem_alloc' => 0,
+                                    'buf_free' => '0',
+                                    'buf_pool_hit_rate' => '1000 / 1000',
+                                    'buf_pool_hits' => '1000',
+                                    'buf_pool_reads' => '1000',
+                                    'buf_pool_size' => '102399',
+                                    'complete' => 1,
+                                    'dict_mem_alloc' => '464848',
+                                    'page_creates_sec' => '0.00',
+                                    'page_reads_sec' => '0.00',
+                                    'page_writes_sec' => '0.00',
+                                    'pages_created' => '1427',
+                                    'pages_modified' => '15',
+                                    'pages_read' => '104408',
+                                    'pages_total' => '102141',
+                                    'pages_written' => '1215747',
+                                    'reads_pending' => '0',
+                                    'total_mem_alloc' => '1717043200',
+                                    'writes_pending' => '0',
+                                    'writes_pending_flush_list' => 0,
+                                    'writes_pending_lru' => 0,
+                                    'writes_pending_single_page' => 0
+                                  },
+                          'bt' => {
+                                    'complete' => 1,
+                                    'fulltext' => 'srv_master_thread loops: 254315 1_second, 254314 sleeps, 25103 10_second, 3694 background, 3694 flush
+srv_master_thread log flush and writes: 254516'
+                                  },
+                          'ib' => {
+                                    'bufs_in_node_heap' => '258',
+                                    'complete' => 1,
+                                    'free_list_len' => '5',
+                                    'hash_searches_s' => '1000.00',
+                                    'hash_table_size' => '3320351',
+                                    'inserts' => undef,
+                                    'merged_recs' => 0,
+                                    'merges' => 0,
+                                    'non_hash_searches_s' => '2000.00',
+                                    'seg_size' => '7',
+                                    'size' => '1',
+                                    'used_cells' => undef
+                                  },
+                          'io' => {
+                                    'avg_bytes_s' => '0',
+                                    'complete' => 1,
+                                    'flush_type' => 'fsync',
+                                    'fsyncs_s' => '0.00',
+                                    'os_file_reads' => '104547',
+                                    'os_file_writes' => '2096245',
+                                    'os_fsyncs' => '310276',
+                                    'pending_aio_writes' => undef,
+                                    'pending_buffer_pool_flushes' => '0',
+                                    'pending_ibuf_aio_reads' => '0',
+                                    'pending_log_flushes' => '0',
+                                    'pending_log_ios' => '0',
+                                    'pending_normal_aio_reads' => undef,
+                                    'pending_preads' => 0,
+                                    'pending_pwrites' => 0,
+                                    'pending_sync_ios' => '0',
+                                    'reads_s' => '0.00',
+                                    'threads' => {
+                                                   '0' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'insert buffer thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '0'
+                                                          },
+                                                   '1' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'log thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '1'
+                                                          },
+                                                   '2' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'read thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '2'
+                                                          },
+                                                   '3' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'read thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '3'
+                                                          },
+                                                   '4' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'read thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '4'
+                                                          },
+                                                   '5' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'read thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '5'
+                                                          },
+                                                   '6' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'write thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '6'
+                                                          },
+                                                   '7' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'write thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '7'
+                                                          },
+                                                   '8' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'write thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '8'
+                                                          },
+                                                   '9' => {
+                                                            'event_set' => 0,
+                                                            'purpose' => 'write thread',
+                                                            'state' => 'waiting for completed aio requests',
+                                                            'thread' => '9'
+                                                          }
+                                                 },
+                                    'writes_s' => '2000.00'
+                                  },
+                          'lg' => {
+                                    'complete' => 1,
+                                    'last_chkp' => '8238468633',
+                                    'log_flushed_to' => '8238469445',
+                                    'log_ios_done' => '841370',
+                                    'log_ios_s' => '2000.00',
+                                    'log_seq_no' => '8238469953',
+                                    'pending_chkp_writes' => '0',
+                                    'pending_log_writes' => '0'
+                                  },
+                          'ro' => {
+                                    'complete' => 1,
+                                    'del_sec' => '0.00',
+                                    'ins_sec' => '1000.00',
+                                    'main_thread_id' => '139805432493824',
+                                    'main_thread_proc_no' => '10225',
+                                    'main_thread_state' => 'sleeping',
+                                    'n_reserved_extents' => 0,
+                                    'num_rows_del' => '6886',
+                                    'num_rows_ins' => '367197',
+                                    'num_rows_read' => '3889914',
+                                    'num_rows_upd' => '410402',
+                                    'queries_in_queue' => '0',
+                                    'queries_inside' => '0',
+                                    'read_sec' => '1000.00',
+                                    'read_views_open' => '1',
+                                    'upd_sec' => '1000.00'
+                                  },
+                          'sm' => {
+                                    'complete' => 1,
+                                    'mutex_os_waits' => '1766',
+                                    'mutex_spin_rounds' => '74271',
+                                    'mutex_spin_waits' => '16036',
+                                    'reservation_count' => '28166',
+                                    'rw_excl_os_waits' => '224',
+                                    'rw_excl_spins' => '126',
+                                    'rw_shared_os_waits' => '25971',
+                                    'rw_shared_spins' => '26265',
+                                    'signal_count' => '27969',
+                                    'wait_array_size' => 0,
+                                    'waits' => []
+                                  },
+                          'tx' => {
+                                    'complete' => 1,
+                                    'history_list_len' => '3910',
+                                    'is_truncated' => 0,
+                                    'num_lock_structs' => undef,
+                                    'purge_done_for' => '4CF648',
+                                    'purge_undo_for' => '0',
+                                    'transactions' => [
+                                                        {
+                                                          'active_secs' => 0,
+                                                          'has_read_view' => 0,
+                                                          'heap_size' => 0,
+                                                          'hostname' => 'localhost',
+                                                          'ip' => '',
+                                                          'lock_structs' => 0,
+                                                          'lock_wait_status' => '',
+                                                          'lock_wait_time' => 0,
+                                                          'mysql_thread_id' => '13933892',
+                                                          'os_thread_id' => undef,
+                                                          'proc_no' => 0,
+                                                          'query_id' => '373657354',
+                                                          'query_status' => '',
+                                                          'query_text' => 'SHOW ENGINE INNODB STATUS',
+                                                          'row_locks' => 0,
+                                                          'tables_in_use' => 0,
+                                                          'tables_locked' => 0,
+                                                          'thread_decl_inside' => 0,
+                                                          'thread_status' => '',
+                                                          'txn_doesnt_see_ge' => '',
+                                                          'txn_id' => undef,
+                                                          'txn_sees_lt' => '',
+                                                          'txn_status' => undef,
+                                                          'undo_log_entries' => 0,
+                                                          'user' => 'root'
+                                                        },
+                                                        {
+                                                          'active_secs' => 0,
+                                                          'has_read_view' => 0,
+                                                          'heap_size' => 0,
+                                                          'hostname' => 'localhost',
+                                                          'ip' => '',
+                                                          'lock_structs' => 0,
+                                                          'lock_wait_status' => '',
+                                                          'lock_wait_time' => 0,
+                                                          'mysql_thread_id' => '13867718',
+                                                          'os_thread_id' => undef,
+                                                          'proc_no' => 0,
+                                                          'query_id' => '373656800',
+                                                          'query_status' => '',
+                                                          'query_text' => '',
+                                                          'row_locks' => 0,
+                                                          'tables_in_use' => 0,
+                                                          'tables_locked' => 0,
+                                                          'thread_decl_inside' => 0,
+                                                          'thread_status' => '',
+                                                          'txn_doesnt_see_ge' => '',
+                                                          'txn_id' => undef,
+                                                          'txn_sees_lt' => '',
+                                                          'txn_status' => undef,
+                                                          'undo_log_entries' => 0,
+                                                          'user' => 'root'
+                                                        },
+                                                        {
+                                                          'active_secs' => 0,
+                                                          'has_read_view' => 0,
+                                                          'heap_size' => 0,
+                                                          'hostname' => 'Slave',
+                                                          'ip' => '',
+                                                          'lock_structs' => 0,
+                                                          'lock_wait_status' => '',
+                                                          'lock_wait_time' => 0,
+                                                          'mysql_thread_id' => '2',
+                                                          'os_thread_id' => undef,
+                                                          'proc_no' => 0,
+                                                          'query_id' => '373657353',
+                                                          'query_status' => 'read all relay log; waiting for the slave I/O thread to update it',
+                                                          'query_text' => '',
+                                                          'row_locks' => 0,
+                                                          'tables_in_use' => 0,
+                                                          'tables_locked' => 0,
+                                                          'thread_decl_inside' => 0,
+                                                          'thread_status' => '',
+                                                          'txn_doesnt_see_ge' => '',
+                                                          'txn_id' => undef,
+                                                          'txn_sees_lt' => '',
+                                                          'txn_status' => undef,
+                                                          'undo_log_entries' => 0,
+                                                          'user' => 'has'
+                                                        }
+                                                      ],
+                                    'trx_id_counter' => '4CF652'
+                                  }
+                        },
+          'timestring' => '2012-04-22 20:39:23',
+          'ts' => [
+                    2012,
+                    '04',
+                    22,
+                    20,
+                    39,
+                    23
+                  ]
+        };
