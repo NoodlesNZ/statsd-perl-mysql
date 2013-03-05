@@ -1,25 +1,43 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings FATAL => 'all';
 
 package InnoDBParser;
+
+# This program is copyright (c) 2006 Baron Schwartz, baron at xaprb dot com.
+# Feedback and improvements are gratefully received.
+#
+# THIS PROGRAM IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, version 2; OR the Perl Artistic License.  On UNIX and similar
+# systems, you can issue `man perlgpl' or `man perlartistic' to read these
+
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+our $VERSION = '1.6.0';
 
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 use English qw(-no_match_vars);
 use List::Util qw(max);
-use POSIX qw(strftime);
 
 # Some common patterns
 my $d  = qr/(\d+)/;                    # Digit
 my $f  = qr/(\d+\.\d+)/;               # Float
-my $t  = qr/((?:\d+ \d+)|(?:[A-Fa-f0-9]+))/;                # Transaction ID
+my $t  = qr/(\d+ \d+)/;                # Transaction ID
 my $i  = qr/((?:\d{1,3}\.){3}\d+)/;    # IP address
 my $n  = qr/([^`\s]+)/;                # MySQL object name
 my $w  = qr/(\w+)/;                    # Words
 my $fl = qr/([\w\.\/]+) line $d/;      # Filename and line number
 my $h  = qr/((?:0x)?[0-9a-f]*)/;       # Hex
-my $s  = qr/(\d{6} .?\d:\d\d:\d\d)/;   # InnoDB timestamp
+my $s  = qr/(\d{6} .\d:\d\d:\d\d)/;    # InnoDB timestamp
 
 # If you update this variable, also update the SYNOPSIS in the pod.
 my %innodb_section_headers = (
@@ -32,7 +50,6 @@ my %innodb_section_headers = (
    "FILE I/O"                              => "io",
    "LATEST DETECTED DEADLOCK"              => "dl",
    "LATEST FOREIGN KEY ERROR"              => "fk",
-   "BACKGROUND THREAD"                     => "bt",
 );
 
 my %parser_for = (
@@ -137,34 +154,22 @@ sub parse_status_text {
    while ( my ( $start, $name, $text, $end ) = splice(@matches, 0, 4) ) {
       $innodb_sections{$name} = [ $text, $end ? 1 : 0 ];
    }
+   # The Row Operations section is a special case, because instead of ending
+   # with the beginning of another section, it ends with the end of the file.
+   # So this section is complete if the entire file is complete.
+   $innodb_sections{'ROW OPERATIONS'}->[1] ||= $innodb_data{'got_all'};
 
    # Just for sanity's sake, make sure I understand what to do with each
-   # section.
+   # section
    eval {
       foreach my $section ( keys %innodb_sections ) {
          my $header = $innodb_section_headers{$section};
-         if ( !$header && $debug ) {
-            warn "Unknown section $section in $fulltext\n";
-         }
-
-         # The last section in the file is a special case, because instead of
-         # ending with the beginning of another section, it ends with the end of
-         # the file.  So this section is complete if the entire file is
-         # complete.  In different versions of InnoDB, various sections are
-         # last.
-         if ( $innodb_sections{$section}->[0] =~ s/\n---+\nEND OF INNODB.+\n=+$// ) {
-            $innodb_sections{$section}->[1] ||= $innodb_data{'got_all'};
-         }
-
-         if ( $header && $section ) {
-            $innodb_data{'sections'}->{ $header }
-               ->{'fulltext'} = $innodb_sections{$section}->[0];
-            $innodb_data{'sections'}->{ $header }
-               ->{'complete'} = $innodb_sections{$section}->[1];
-         }
-         else {
-            _debug( $debug, "header = " . ($header || 'undef') . ", section = " . ($section || 'undef')) if $debug;
-         }
+         die "Unknown section $section in $fulltext\n"
+            unless $header;
+         $innodb_data{'sections'}->{ $header }
+            ->{'fulltext'} = $innodb_sections{$section}->[0];
+         $innodb_data{'sections'}->{ $header }
+            ->{'complete'} = $innodb_sections{$section}->[1];
       }
    };
    if ( $EVAL_ERROR ) {
@@ -295,9 +300,6 @@ sub parse_fk_cant_drop_parent_error {
       =~ m{because it is referenced by `(.*)/(.*)`}m;
 
    ( $section->{'reason'} ) = $fulltext =~ m/(Cannot .*)/s;
-   if ( !defined $section->{reason} ) {
-      ( $section->{'reason'} ) = $fulltext =~ m/(Trying to add .*)/s;
-   }
    $section->{'reason'} =~ s/\n(?:InnoDB: )?/ /gm
       if $section->{'reason'};
 
@@ -368,7 +370,7 @@ sub parse_fk_transaction_error {
    # no matching parent record (row_ins_foreign_report_add_err).
 
    @{$section}{ qw(reason child_db child_table) }
-      = $fulltext =~ m{^(Foreign key constraint fails for table `(.*?)`?[/.]`?(.*)`:)$}m;
+      = $fulltext =~ m{^(Foreign key constraint fails for table `(.*)/(.*)`:)$}m;
 
    @{$section}{ qw(fk_name col_name parent_db parent_table parent_col) }
       = $fulltext
@@ -607,7 +609,7 @@ sub parse_tx_text {
 
    if ( $thread_line ) {
       # These parts can always be gotten.
-      ( $mysql_thread_id, $query_id ) = $thread_line =~ m/^MySQL thread id $d, .*?query id $d/m;
+      ( $mysql_thread_id, $query_id ) = $thread_line =~ m/^MySQL thread id $d, query id $d/m;
 
       # If it's a master/slave thread, "Has (read|sent) all" may be the thread's
       # proc_info.  In these cases, there won't be any host/ip/user info
@@ -733,7 +735,7 @@ sub parse_tx_section {
    $section->{'transactions'} = [];
 
    # Handle the individual transactions
-   my @transactions = $fulltext =~ m/(---TRANSACTION [0-9A-Fa-f].*?)(?=\n---TRANSACTION|$)/gs;
+   my @transactions = $fulltext =~ m/(---TRANSACTION \d.*?)(?=\n---TRANSACTION|$)/gs;
    foreach my $txn ( @transactions ) {
       my $stuff = parse_tx_text( $txn, $complete, $debug, $full );
       delete $stuff->{'fulltext'} unless $debug;
@@ -818,19 +820,12 @@ sub parse_ib_section {
    # the source code shows there will only ever be one).  I have to parse both
    # cases here, but I assume there will only be one.
    @{$section}{ 'size', 'free_list_len', 'seg_size' }
-      = $fulltext =~ m/^Ibuf(?: for space 0)?: size $d, free list len $d, seg size $d/m;
+      = $fulltext =~ m/^Ibuf(?: for space 0)?: size $d, free list len $d, seg size $d,$/m;
    @{$section}{ 'inserts', 'merged_recs', 'merges' }
       = $fulltext =~ m/^$d inserts, $d merged recs, $d merges$/m;
-   if ( ! defined $section->{inserts} ) {
-      @{$section}{ 'inserts' }
-         = $fulltext =~ m/merged operations:\n  insert $d,/s;
-      # This isn't really true, but it's not really important either. We already
-      # aren't supporting the 'delete' operations.
-      @{$section}{ 'merged_recs', 'merges' } = (0, 0);
-   }
 
    @{$section}{ 'hash_table_size', 'used_cells', 'bufs_in_node_heap' }
-      = $fulltext =~ m/^Hash table size $d(?:, used cells $d)?, node heap has $d buffer\(s\)$/m;
+      = $fulltext =~ m/^Hash table size $d, used cells $d, node heap has $d buffer\(s\)$/m;
    @{$section}{ 'hash_searches_s', 'non_hash_searches_s' }
       = $fulltext =~ m{^$f hash searches/s, $f non-hash searches/s$}m;
 
@@ -891,12 +886,6 @@ sub parse_sm_section {
       = $fulltext =~ m/^Mutex spin waits $d, rounds $d, OS waits $d$/m;
    @{$section}{ 'rw_shared_spins', 'rw_shared_os_waits', 'rw_excl_spins', 'rw_excl_os_waits' }
       = $fulltext =~ m/^RW-shared spins $d, OS waits $d; RW-excl spins $d, OS waits $d$/m;
-   if ( ! defined $section->{rw_shared_spins} ) {
-      @{$section}{ 'rw_shared_spins', 'rw_shared_os_waits'}
-         = $fulltext =~ m/^RW-shared spins $d, rounds \d+, OS waits $d$/m;
-      @{$section}{ 'rw_excl_spins', 'rw_excl_os_waits' }
-         = $fulltext =~ m/^RW-excl spins $d, rounds \d+, OS waits $d$/m;
-   }
 
    # Look for info on waits.
    my @waits = $fulltext =~ m/^(--Thread.*?)^(?=Mutex spin|--Thread)/gms;
@@ -927,14 +916,14 @@ sub parse_bp_section {
    @{$section}{'page_reads_sec', 'page_creates_sec', 'page_writes_sec'}
       = $fulltext =~ m{^$f reads/s, $f creates/s, $f writes/s$}m;
    @{$section}{'buf_pool_hits', 'buf_pool_reads'}
-      = $fulltext =~ m{Buffer pool hit rate $d / $d}m;
+      = $fulltext =~ m{Buffer pool hit rate $d / $d$}m;
    if ($fulltext =~ m/^No buffer pool page gets since the last printout$/m) {
       @{$section}{'buf_pool_hits', 'buf_pool_reads'} = (0, 0);
       @{$section}{'buf_pool_hit_rate'} = '--';
    }
    else {
       @{$section}{'buf_pool_hit_rate'}
-         = $fulltext =~ m{Buffer pool hit rate (\d+ / \d+)}m;
+         = $fulltext =~ m{Buffer pool hit rate (\d+ / \d+)$}m;
    }
    @{$section}{'reads_pending'} = $fulltext =~ m/^Pending reads $d/m;
    @{$section}{'writes_pending_lru', 'writes_pending_flush_list', 'writes_pending_single_page' }
@@ -974,7 +963,7 @@ sub parse_io_section {
 
    # Grab the reads/writes/flushes info
    @{$section}{ 'pending_normal_aio_reads', 'pending_aio_writes' }
-      = $fulltext =~ m/^Pending normal aio reads: $d(?: [^\]]*\])?, aio writes: $d/m;
+      = $fulltext =~ m/^Pending normal aio reads: $d, aio writes: $d,$/m;
    @{$section}{ 'pending_ibuf_aio_reads', 'pending_log_ios', 'pending_sync_ios' }
       = $fulltext =~ m{^ ibuf aio reads: $d, log i/o's: $d, sync i/o's: $d$}m;
    @{$section}{ 'flush_type', 'pending_log_flushes', 'pending_buffer_pool_flushes' }
